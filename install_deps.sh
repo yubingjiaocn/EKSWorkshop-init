@@ -52,3 +52,7 @@ echo "Installing Helm"
 curl -sSL https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 
 helm version --short
+
+echo "Creating OIDC Provider for Cluster" 
+
+eksctl utils associate-iam-oidc-provider --region=${AWS_REGION} --cluster=${CLUSTER_NAME} --approve
