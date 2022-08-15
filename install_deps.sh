@@ -5,7 +5,6 @@ curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip
 unzip awscliv2.zip
 sudo ./aws/install
 
-
 echo "Installing jq"
 
 sudo yum -y install jq gettext bash-completion moreutils
@@ -42,6 +41,11 @@ export CLUSTER_NAME=eksworkshop-eksctl
 echo "export CLUSTER_NAME=${CLUSTER_NAME}" | tee -a ~/.bash_profile
 
 aws eks update-kubeconfig --name eksworkshop-eksctl --region ${AWS_REGION}
+
+echo "Installing eksctl"
+
+curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+sudo mv /tmp/eksctl /usr/local/bin
 
 echo "Installing Helm"
 
