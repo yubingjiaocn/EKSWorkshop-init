@@ -96,6 +96,7 @@ helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter --vers
 在部署节点之前，我们需要创建Provider。Provider指定了新创建节点的实例类型，容量模式，子网等设置。运行以下命令：
 
 ```yaml
+cat <<EOF | kubectl apply -f -
 apiVersion: karpenter.sh/v1alpha5
 kind: Provisioner
 metadata:
