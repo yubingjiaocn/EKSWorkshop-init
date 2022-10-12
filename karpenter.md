@@ -8,7 +8,7 @@
 wget https://raw.githubusercontent.com/yubingjiaocn/EKSWorkshop-init/main/install_deps.sh
 chmod +x install_deps.sh
 ./install_deps.sh
-source ~/.bashrc
+source ~/.bash_profile
 ```
 
 以上命令会安装AWS CLI V2, kubectl, helm和其他依赖组件。安装完成后，打开一个新的终端窗口以确保环境变量正确配置。
