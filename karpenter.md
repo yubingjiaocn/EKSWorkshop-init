@@ -19,7 +19,7 @@ chmod +x install_deps.sh
 在安装之前，需要配置一些环境变量。运行如下命令：
 
 ```bash
-export KARPENTER_VERSION=v0.14.0
+export KARPENTER_VERSION=v0.18.0
 ```
 
 ### 配置IAM角色
@@ -80,14 +80,11 @@ aws iam create-service-linked-role --aws-service-name spot.amazonaws.com || true
 ```bash
 helm repo add karpenter https://charts.karpenter.sh/
 helm repo update
-helm upgrade --install --namespace karpenter --create-namespace \
-  karpenter karpenter/karpenter \
-  --version ${KARPENTER_VERSION} \
+helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter --version ${KARPENTER_VERSION} --namespace karpenter --create-namespace \
   --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"=${KARPENTER_IAM_ROLE_ARN} \
   --set clusterName=${CLUSTER_NAME} \
-  --set clusterEndpoint=$(aws eks describe-cluster --name ${CLUSTER_NAME} --query "cluster.endpoint" --output json) \
+  --set clusterEndpoint=${CLUSTER_ENDPOINT} \
   --set aws.defaultInstanceProfile=KarpenterNodeInstanceProfile-${CLUSTER_NAME} \
-  --set defaultProvisioner.create=false \
   --wait # for the defaulting webhook to install before creating a Provisioner
 ```
 
@@ -98,7 +95,6 @@ helm upgrade --install --namespace karpenter --create-namespace \
 在部署节点之前，我们需要创建Provider。Provider指定了新创建节点的实例类型，容量模式，子网等设置。运行以下命令：
 
 ```yaml
-cat <<EOF | kubectl apply -f -
 apiVersion: karpenter.sh/v1alpha5
 kind: Provisioner
 metadata:
@@ -106,15 +102,35 @@ metadata:
 spec:
   labels:
     intent: apps
-  provider:
-    instanceProfile: KarpenterNodeInstanceProfile-${CLUSTER_NAME}
-    tags:
-      accountingEC2Tag: KarpenterDevEnvironmentEC2
-    subnetSelector:
-      eksctl.cluster.k8s.io/v1alpha1/cluster-name: ${CLUSTER_NAME}
-    securityGroupSelector:
-      aws:cloudformation:logical-id: ClusterSharedNodeSecurityGroup
-  ttlSecondsAfterEmpty: 30
+  requirements:
+    - key: karpenter.sh/capacity-type
+      operator: In
+      values: ["spot", "on-demand"]
+    - key: karpenter.k8s.aws/instance-size
+      operator: NotIn
+      values: [nano, micro, small, medium, large]
+  consolidation:
+    enabled: true    
+  limits:
+    resources:
+      cpu: 1000
+      memory: 1000Gi
+  providerRef:
+    name: default
+---
+apiVersion: karpenter.k8s.aws/v1alpha1
+kind: AWSNodeTemplate
+metadata:
+  name: default
+spec:
+  subnetSelector:
+    alpha.eksctl.io/cluster-name: ${CLUSTER_NAME}
+  securityGroupSelector:
+    alpha.eksctl.io/cluster-name: ${CLUSTER_NAME}
+  tags:
+    KarpenerProvisionerName: "default"
+    NodeType: "karpenter-workshop"
+    IntentLabel: "apps"
 EOF
 ```
 ## 创建示例Pod
