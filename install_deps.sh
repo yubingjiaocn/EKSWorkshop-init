@@ -25,7 +25,7 @@ export ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
 export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --output text --query Account)
 export AWS_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r '.region')
 export AZS=($(aws ec2 describe-availability-zones --query 'AvailabilityZones[].ZoneName' --output text --region $AWS_REGION))
-export CLUSTER_ENDPOINT="$(aws eks describe-cluster --name ${CLUSTER_NAME} --query "cluster.endpoint" --output text)"
+export CLUSTER_ENDPOINT="$(aws eks describe-cluster --name $CLUSTER_NAME --query "cluster.endpoint" --output text)"
 
 echo "export ACCOUNT_ID=${ACCOUNT_ID}" | tee -a ~/.bash_profile
 echo "export AWS_ACCOUNT_ID=${ACCOUNT_ID}" | tee -a ~/.bash_profile
