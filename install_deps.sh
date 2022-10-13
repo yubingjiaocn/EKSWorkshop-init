@@ -4,6 +4,7 @@ sudo yum remove aws-cli -y
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
 sudo ./aws/install
+rm awscli-exe-linux-x86_64.zip
 
 echo "Installing jq"
 
@@ -60,3 +61,10 @@ helm version --short
 echo "Creating OIDC Provider for Cluster" 
 
 eksctl utils associate-iam-oidc-provider --region=${AWS_REGION} --cluster=${CLUSTER_NAME} --approve
+
+eksctl create iamidentitymapping \
+  --cluster eksworkshop-eksctl \
+  --arn arn:aws:iam::${ACCOUNT_ID}:role/TeamRole \
+  --username cluster-admin \
+  --group system:masters \
+  --region ${AWS_REGION}
