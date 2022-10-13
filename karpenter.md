@@ -60,6 +60,8 @@ eksctl create iamserviceaccount \
 
 export KARPENTER_IAM_ROLE_ARN="arn:aws:iam::${ACCOUNT_ID}:role/${CLUSTER_NAME}-karpenter"
 echo $KARPENTER_IAM_ROLE_ARN
+export CLUSTER_ENDPOINT="$(aws eks describe-cluster --name $CLUSTER_NAME --query "cluster.endpoint" --output text)"
+echo $CLUSTER_ENDPOINT
 
 ```
 
